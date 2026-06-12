@@ -1,14 +1,15 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Users, BarChart3, LogOut, PieChart } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, LogOut, PieChart, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", Icon: PieChart },
-  { to: "/painel", label: "Painel", Icon: LayoutDashboard },
-  { to: "/equipe", label: "Equipe", Icon: Users },
-  { to: "/relatorios", label: "Relatórios", Icon: BarChart3 },
+  { to: "/dashboard", label: "Dashboard", Icon: PieChart, adminOnly: true },
+  { to: "/painel", label: "Atividades", Icon: LayoutDashboard, adminOnly: false },
+  { to: "/equipe", label: "Equipe", Icon: Users, adminOnly: true },
+  { to: "/aprovacoes", label: "Aprovações", Icon: UserCheck, adminOnly: true },
+  { to: "/relatorios", label: "Relatórios", Icon: BarChart3, adminOnly: true },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-card/80 backdrop-blur border-b no-print">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/painel" className="flex items-center gap-2.5">
+          <Link to={isAdmin ? "/dashboard" : "/painel"} className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-lg bg-gradient-primary grid place-items-center shadow-elegant">
               <img src={lignumLogo.url} alt="" className="h-6 w-6 object-contain invert" />
             </div>
@@ -30,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
           <nav className="flex items-center gap-1">
-            {NAV.map(({ to, label, Icon }) => {
+            {NAV.filter((item) => isAdmin || !item.adminOnly).map(({ to, label, Icon }) => {
               const active = loc.pathname === to;
               return (
                 <Link

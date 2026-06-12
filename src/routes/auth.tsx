@@ -13,23 +13,36 @@ export const Route = createFileRoute("/auth")({ component: AuthPage });
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, role, roleLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (session) navigate({ to: "/painel", replace: true });
-  }, [session, navigate]);
+    if (!session || roleLoading || role === "pending" || role === null) return;
+    navigate({ to: role === "admin" ? "/dashboard" : "/painel", replace: true });
+  }, [session, navigate, role, roleLoading]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) toast.error(error.message);
-    else navigate({ to: "/painel", replace: true });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
+    if (!userId) return;
+    const { data: access } = await supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
+    if (access?.role === "pending" || !access) {
+      await supabase.auth.signOut();
+      toast.info("Seu cadastro está aguardando aprovação de um administrador.");
+      return;
+    }
+    navigate({ to: access.role === "admin" ? "/dashboard" : "/painel", replace: true });
   }
 
   async function signUp(e: React.FormEvent) {
@@ -45,7 +58,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else toast.success("Conta criada! Verifique seu e-mail se confirmação for exigida.");
+    else toast.success("Conta criada! Após confirmar o e-mail, aguarde a aprovação de um administrador.");
   }
 
   return (
@@ -119,9 +132,7 @@ function AuthPage() {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Criando..." : "Criar conta"}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  O primeiro cadastro vira administrador automaticamente.
-                </p>
+                <p className="text-xs text-muted-foreground text-center">Novos cadastros precisam ser aprovados por um administrador.</p>
               </form>
             </TabsContent>
           </Tabs>

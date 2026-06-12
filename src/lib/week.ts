@@ -1,8 +1,9 @@
-// Week utilities (Sunday-start, matching the Base44 reference)
+// Week utilities (Monday through Sunday)
 export function startOfWeek(d: Date): Date {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
-  x.setDate(x.getDate() - x.getDay()); // back to Sunday
+  const daysSinceMonday = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - daysSinceMonday);
   return x;
 }
 
@@ -29,7 +30,7 @@ export function formatDM(d: Date): string {
 }
 
 export function weeksOfMonth(year: number, month: number): Date[] {
-  // month is 0-indexed; returns Sunday week starts that intersect this month
+  // month is 0-indexed; returns Monday week starts that intersect this month
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
   const weeks: Date[] = [];

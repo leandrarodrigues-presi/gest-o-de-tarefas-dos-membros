@@ -23,6 +23,7 @@ export type Database = {
           name: string
           role_title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -32,6 +33,7 @@ export type Database = {
           name: string
           role_title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -41,8 +43,17 @@ export type Database = {
           name?: string
           role_title?: string
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -147,7 +158,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "member"
+      app_role: "admin" | "member" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -275,7 +286,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "member"],
+      app_role: ["admin", "member", "pending"],
     },
   },
 } as const

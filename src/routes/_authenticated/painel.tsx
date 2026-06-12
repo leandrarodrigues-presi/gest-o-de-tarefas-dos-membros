@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, addDays, toISODate, formatDM, weeksOfMonth, MONTHS_PT, initialsFromName } from "@/lib/week";
 import { WeekEntryDialog, type WeekEntry } from "@/components/WeekEntryDialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/painel")({ component: Painel });
 
@@ -16,6 +17,7 @@ interface Entry {
 }
 
 function Painel() {
+  const { isAdmin } = useAuth();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -68,7 +70,7 @@ function Painel() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Painel de Atividades</h1>
-          <p className="text-muted-foreground text-sm">Acompanhe as atividades semanais de toda a equipe</p>
+          <p className="text-muted-foreground text-sm">{isAdmin ? "Acompanhe as atividades semanais de toda a equipe" : "Preencha sua semana vigente e consulte seus registros anteriores"}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => changeMonth(-1)}><ChevronLeft className="h-4 w-4" /></Button>
@@ -183,6 +185,7 @@ function Painel() {
           memberName={dialog.member.name}
           weekStart={dialog.weekStart}
           entry={dialog.entry}
+          readOnly={!isAdmin && toISODate(dialog.weekStart) !== currentWeekISO}
           onSaved={load}
         />
       )}

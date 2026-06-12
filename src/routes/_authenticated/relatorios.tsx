@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { addDays, formatDM, MONTHS_PT, startOfWeek, toISODate, weeksOfMonth, initialsFromName } from "@/lib/week";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 import iffLogo from "@/assets/iff.png.asset.json";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 
-export const Route = createFileRoute("/_authenticated/relatorios")({ component: Relatorios });
+export const Route = createFileRoute("/_authenticated/relatorios")({ component: () => <AdminRouteGuard><Relatorios /></AdminRouteGuard> });
 
 interface Member { id: string; name: string; role_title: string; }
 interface Entry {
@@ -86,7 +87,7 @@ function Relatorios() {
       </Card>
 
       <div className="print-area">
-        <div className="mx-auto max-w-[820px] bg-white rounded-xl border-4 border-primary overflow-hidden shadow-card">
+        <div className="report-document mx-auto max-w-[820px] bg-white rounded-xl border-4 border-primary overflow-hidden shadow-card">
           {/* Header */}
           <div className="bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between gap-4">
             <div className="h-14 w-14 rounded-full bg-white/15 grid place-items-center">
@@ -128,7 +129,7 @@ function Relatorios() {
             })}
           </div>
 
-          <div className="border-t-4 border-primary px-6 py-4 text-center italic text-sm bg-primary/5">
+          <div className="report-footer border-t-4 border-primary px-6 py-4 text-center italic text-sm bg-primary/5">
             "Ninguém constrói uma obra relevante com o tempo que sobra; constrói com o tempo que dedica."
             <div className="not-italic text-xs text-muted-foreground mt-1">— Mário Sérgio Cortella</div>
           </div>
