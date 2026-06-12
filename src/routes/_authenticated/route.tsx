@@ -17,7 +17,7 @@ function Layout() {
 
   useEffect(() => {
     if (!loading && !roleLoading && session && (role === "pending" || role === null)) {
-      void signOut().then(() => navigate({ to: "/auth", replace: true, search: { pending: true } }));
+      void signOut().then(() => navigate({ to: "/auth", replace: true }));
     }
   }, [loading, navigate, role, roleLoading, session, signOut]);
 
