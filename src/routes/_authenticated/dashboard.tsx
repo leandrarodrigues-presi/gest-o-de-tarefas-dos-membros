@@ -8,8 +8,9 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { MONTHS_PT } from "@/lib/week";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 
-export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
+export const Route = createFileRoute("/_authenticated/dashboard")({ component: () => <AdminRouteGuard><Dashboard /></AdminRouteGuard> });
 
 interface Member { id: string; name: string; role_title: string; area: string | null; active: boolean; }
 interface Entry {

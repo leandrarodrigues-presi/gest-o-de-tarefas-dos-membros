@@ -13,8 +13,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 
-export const Route = createFileRoute("/_authenticated/equipe")({ component: Equipe });
+export const Route = createFileRoute("/_authenticated/equipe")({ component: () => <AdminRouteGuard><Equipe /></AdminRouteGuard> });
 
 function Equipe() {
   const { isAdmin } = useAuth();
