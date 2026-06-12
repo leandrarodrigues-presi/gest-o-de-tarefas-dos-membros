@@ -24,13 +24,18 @@ function Approvals() {
   const [saving, setSaving] = useState<string | null>(null);
 
   async function load() {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("user_id,profiles!user_roles_user_id_fkey(email,full_name)")
-      .eq("role", "pending")
-      .order("created_at");
-    if (error) toast.error("Não foi possível carregar os cadastros pendentes.");
-    setUsers((data as unknown as PendingUser[]) ?? []);
+    const { data: pending, error } = await supabase.from("user_roles").select("user_id").eq("role", "pending").order("created_at");
+    if (error) {
+      toast.error("Não foi possível carregar os cadastros pendentes.");
+      return;
+    }
+    const ids = pending?.map((item) => item.user_id) ?? [];
+    if (ids.length === 0) {
+      setUsers([]);
+      return;
+    }
+    const { data: profiles } = await supabase.from("profiles").select("id,email,full_name").in("id", ids);
+    setUsers(ids.map((userId) => ({ user_id: userId, profiles: profiles?.find((profile) => profile.id === userId) ?? null })));
   }
 
   useEffect(() => {

@@ -25,10 +25,15 @@ export const approveUser = createServerFn({ method: "POST" })
       .single();
     if (profileError || !profile) throw new Error("Cadastro não encontrado");
 
-    const { error: deleteError } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
-    if (deleteError) throw deleteError;
-    const { error: insertError } = await supabaseAdmin.from("user_roles").insert({ user_id: data.userId, role: data.role });
-    if (insertError) throw insertError;
+    const { data: updatedRole, error: updateError } = await supabaseAdmin
+      .from("user_roles")
+      .update({ role: data.role })
+      .eq("user_id", data.userId)
+      .eq("role", "pending")
+      .select("id")
+      .maybeSingle();
+    if (updateError) throw updateError;
+    if (!updatedRole) throw new Error("Este cadastro já foi processado");
 
     if (data.role === "member") {
       const { error: memberError } = await supabaseAdmin.from("members").upsert(

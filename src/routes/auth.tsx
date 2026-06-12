@@ -13,15 +13,16 @@ export const Route = createFileRoute("/auth")({ component: AuthPage });
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, role, roleLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (session) navigate({ to: "/painel", replace: true });
-  }, [session, navigate]);
+    if (!session || roleLoading || role === "pending" || role === null) return;
+    navigate({ to: role === "admin" ? "/dashboard" : "/painel", replace: true });
+  }, [session, navigate, role, roleLoading]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
