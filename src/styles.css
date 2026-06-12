@@ -115,7 +115,19 @@
 @media print {
   body * { visibility: hidden; }
   .print-area, .print-area * { visibility: visible; }
-  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  html, body { min-height: 100%; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; min-height: calc(297mm - 24mm); }
+  .report-document {
+    position: relative;
+    display: flex;
+    min-height: calc(297mm - 24mm);
+    flex-direction: column;
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .report-document > .p-6 { flex: 1 0 auto; padding-bottom: 28mm; }
+  .report-footer { margin-top: auto; break-inside: avoid; page-break-inside: avoid; }
   .no-print { display: none !important; }
   @page { size: A4; margin: 12mm; }
 }
