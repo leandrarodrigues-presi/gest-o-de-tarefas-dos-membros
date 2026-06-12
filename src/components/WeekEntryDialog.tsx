@@ -28,9 +28,10 @@ interface Props {
   weekStart: Date;
   entry: WeekEntry;
   onSaved: () => void;
+  readOnly?: boolean;
 }
 
-export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, entry, onSaved }: Props) {
+export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, entry, onSaved, readOnly = false }: Props) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<string[]>(entry.tasks.length ? entry.tasks : [""]);
   const [meetings, setMeetings] = useState<string[]>(entry.meetings.length ? entry.meetings : [""]);
@@ -42,6 +43,7 @@ export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, ent
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
+    if (readOnly) return;
     setSaving(true);
     const payload = {
       member_id: entry.member_id,
@@ -74,12 +76,14 @@ export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, ent
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSave} className="space-y-5">
-          <ListField label="Tarefas" items={tasks} setItems={setTasks} placeholder="Descreva a tarefa realizada..." />
-          <ListField label="Reuniões" items={meetings} setItems={setMeetings} placeholder="Descreva a reunião..." />
+          {readOnly && <div className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">Semana encerrada: atividades disponíveis apenas para consulta.</div>}
+          <ListField label="Tarefas" items={tasks} setItems={setTasks} placeholder="Descreva a tarefa realizada..." readOnly={readOnly} />
+          <ListField label="Reuniões" items={meetings} setItems={setMeetings} placeholder="Descreva a reunião..." readOnly={readOnly} />
           <div className="space-y-2">
             <Label>Prospecção</Label>
             <Textarea
               value={prospection}
+              readOnly={readOnly}
               onChange={(e) => setProspection(e.target.value)}
               placeholder="Ex: 5 leads contactados, 2 propostas enviadas..."
               rows={3}
@@ -89,14 +93,15 @@ export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, ent
             <Label>Observações</Label>
             <Textarea
               value={observations}
+              readOnly={readOnly}
               onChange={(e) => setObservations(e.target.value)}
               placeholder="Observações adicionais..."
               rows={2}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{readOnly ? "Fechar" : "Cancelar"}</Button>
+            {!readOnly && <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -105,25 +110,20 @@ export function WeekEntryDialog({ open, onOpenChange, memberName, weekStart, ent
 }
 
 function ListField({
-  label, items, setItems, placeholder,
-}: { label: string; items: string[]; setItems: (s: string[]) => void; placeholder: string }) {
+  label, items, setItems, placeholder, readOnly,
+}: { label: string; items: string[]; setItems: (s: string[]) => void; placeholder: string; readOnly: boolean }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label>{label}</Label>
-        <button
-          type="button"
-          onClick={() => setItems([...items, ""])}
-          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:opacity-80"
-        >
-          <Plus className="h-3.5 w-3.5" /> Adicionar
-        </button>
+        {!readOnly && <Button type="button" variant="ghost" size="sm" onClick={() => setItems([...items, ""])} className="h-7 px-2 text-xs text-primary"><Plus className="h-3.5 w-3.5" /> Adicionar</Button>}
       </div>
       <div className="space-y-2">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
             <Input
               value={it}
+              readOnly={readOnly}
               placeholder={placeholder}
               onChange={(e) => {
                 const next = [...items];
@@ -131,14 +131,10 @@ function ListField({
                 setItems(next);
               }}
             />
-            {items.length > 1 && (
-              <button
-                type="button"
-                onClick={() => setItems(items.filter((_, idx) => idx !== i))}
-                className="text-muted-foreground hover:text-destructive p-1"
-              >
+            {!readOnly && items.length > 1 && (
+              <Button type="button" variant="ghost" size="icon" onClick={() => setItems(items.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-destructive">
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </div>
         ))}
