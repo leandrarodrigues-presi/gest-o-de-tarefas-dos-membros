@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Users, ClipboardList, Calendar, TrendingUp, ChevronLeft, ChevronRight, Plus, FileText } from "lucide-react";
+import { Users, ClipboardList, Calendar, TrendingUp, ChevronLeft, ChevronRight, Plus, FileText, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, addDays, toISODate, formatDM, weeksOfMonth, MONTHS_PT, initialsFromName } from "@/lib/week";
 import { WeekEntryDialog, type WeekEntry } from "@/components/WeekEntryDialog";
@@ -239,7 +239,7 @@ function Painel() {
   );
 }
 
-function Stat({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) {
+function Stat({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: number; color: string }) {
   return (
     <Card className="p-4 shadow-card">
       <div className="flex items-center gap-3">

@@ -37,7 +37,7 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved
     setDescription(task?.description ?? "");
     setDueDate(task?.due_date ? new Date(`${task.due_date}T12:00:00`) : undefined);
     setComplexity(task?.complexity ?? "medio");
-  }, [open, member?.id, task?.id]);
+  }, [open, member?.id, task?.id, task?.title, task?.description, task?.due_date, task?.complexity]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
