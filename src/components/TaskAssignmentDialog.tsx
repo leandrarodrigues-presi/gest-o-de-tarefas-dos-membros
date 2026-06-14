@@ -19,10 +19,11 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: { id: string; name: string } | null;
+  task?: { id: string; title: string; description: string; due_date: string; complexity: "baixo" | "medio" | "alto" } | null;
   onSaved: () => void;
 }
 
-export function TaskAssignmentDialog({ open, onOpenChange, member, onSaved }: Props) {
+export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved }: Props) {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -32,11 +33,11 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, onSaved }: Pr
 
   useEffect(() => {
     if (!open) return;
-    setTitle("");
-    setDescription("");
-    setDueDate(undefined);
-    setComplexity("medio");
-  }, [open, member?.id]);
+    setTitle(task?.title ?? "");
+    setDescription(task?.description ?? "");
+    setDueDate(task?.due_date ? new Date(`${task.due_date}T12:00:00`) : undefined);
+    setComplexity(task?.complexity ?? "medio");
+  }, [open, member?.id, task?.id]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -45,20 +46,16 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, onSaved }: Pr
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("delegated_tasks").insert({
-      member_id: member.id,
-      title: title.trim(),
-      description: description.trim(),
-      due_date: format(dueDate, "yyyy-MM-dd"),
-      complexity,
-      assigned_by: user.id,
-    });
+    const payload = { member_id: member.id, title: title.trim(), description: description.trim(), due_date: format(dueDate, "yyyy-MM-dd"), complexity, assigned_by: user.id };
+    const { error } = task
+      ? await supabase.from("delegated_tasks").update(payload).eq("id", task.id)
+      : await supabase.from("delegated_tasks").insert(payload);
     setSaving(false);
     if (error) {
       toast.error("Não foi possível atribuir a tarefa.");
       return;
     }
-    toast.success("Tarefa atribuída com sucesso.");
+    toast.success(task ? "Tarefa atualizada com sucesso." : "Tarefa atribuída com sucesso.");
     onSaved();
     onOpenChange(false);
   }
@@ -66,7 +63,7 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, onSaved }: Pr
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle>Atribuir tarefa a {member?.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{task ? "Editar tarefa" : `Atribuir tarefa a ${member?.name ?? "membro"}`}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="task-title">Título</Label>
@@ -105,7 +102,7 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, onSaved }: Pr
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Atribuindo..." : "Atribuir tarefa"}</Button>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : task ? "Salvar alterações" : "Atribuir tarefa"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
