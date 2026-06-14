@@ -7,6 +7,8 @@ import { startOfWeek, addDays, toISODate, formatDM, weeksOfMonth, MONTHS_PT, ini
 import { WeekEntryDialog, type WeekEntry } from "@/components/WeekEntryDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/painel")({ component: Painel });
 
@@ -15,6 +17,9 @@ interface Entry {
   id: string; member_id: string; week_start: string;
   tasks: string[]; meetings: string[]; prospection: string; observations: string;
 }
+interface DelegatedTask { id: string; member_id: string; title: string; description: string; due_date: string; complexity: "baixo" | "medio" | "alto"; status: "pendente" | "concluida"; }
+
+const COMPLEXITY_LABELS = { baixo: "Baixo", medio: "Médio", alto: "Alto" } as const;
 
 function Painel() {
   const { isAdmin } = useAuth();
@@ -24,6 +29,7 @@ function Painel() {
   const [members, setMembers] = useState<Member[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [delegatedTasks, setDelegatedTasks] = useState<DelegatedTask[]>([]);
   const [dialog, setDialog] = useState<{ open: boolean; member?: Member; weekStart?: Date; entry?: WeekEntry } | null>(null);
 
   const weeks = useMemo(() => weeksOfMonth(year, month), [year, month]);
@@ -32,12 +38,14 @@ function Painel() {
     setLoading(true);
     const startISO = toISODate(weeks[0]);
     const endISO = toISODate(addDays(weeks[weeks.length - 1], 6));
-    const [m, e] = await Promise.all([
+    const [m, e, delegated] = await Promise.all([
       supabase.from("members").select("*").eq("active", true).order("name"),
       supabase.from("weekly_entries").select("*").gte("week_start", startISO).lte("week_start", endISO),
+      supabase.from("delegated_tasks").select("id,member_id,title,description,due_date,complexity,status").order("due_date"),
     ]);
     setMembers((m.data as Member[]) ?? []);
     setEntries(((e.data as unknown) as Entry[]) ?? []);
+    setDelegatedTasks((delegated.data as DelegatedTask[]) ?? []);
     setLoading(false);
   }
 
@@ -65,6 +73,16 @@ function Painel() {
 
   const currentWeekISO = toISODate(startOfWeek(today));
 
+  async function toggleTask(task: DelegatedTask) {
+    const status = task.status === "pendente" ? "concluida" : "pendente";
+    const { error } = await supabase.from("delegated_tasks").update({ status }).eq("id", task.id);
+    if (error) {
+      toast.error("Não foi possível atualizar a tarefa.");
+      return;
+    }
+    setDelegatedTasks((current) => current.map((item) => item.id === task.id ? { ...item, status } : item));
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -88,6 +106,23 @@ function Painel() {
         <Stat icon={Calendar} label="Reuniões" value={totals.meetings} color="text-amber-600" />
         <Stat icon={TrendingUp} label="Registros c/ Prospecção" value={totals.prosp} color="text-sky-600" />
       </div>
+
+      <section className="space-y-3">
+        <div><h2 className="text-xl font-bold">Tarefas delegadas</h2><p className="text-sm text-muted-foreground">Atividades atribuídas pelas diretorias, com prazo e complexidade.</p></div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {delegatedTasks.map((task) => {
+            const member = members.find((item) => item.id === task.member_id);
+            return (
+              <Card key={task.id} className="p-4 shadow-card">
+                <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{task.title}</h3>{isAdmin && <p className="text-xs text-muted-foreground">{member?.name ?? "Membro"}</p>}</div><Badge variant={task.complexity === "alto" ? "destructive" : task.complexity === "medio" ? "default" : "secondary"}>{COMPLEXITY_LABELS[task.complexity]}</Badge></div>
+                <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{task.description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3"><div className="text-xs"><span className="text-muted-foreground">Prazo: </span><span className="font-medium">{new Date(`${task.due_date}T12:00:00`).toLocaleDateString("pt-BR")}</span></div><Button size="sm" variant={task.status === "concluida" ? "outline" : "default"} onClick={() => toggleTask(task)}>{task.status === "concluida" ? "Reabrir" : "Concluir"}</Button></div>
+              </Card>
+            );
+          })}
+          {!loading && delegatedTasks.length === 0 && <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3">Nenhuma tarefa delegada no momento.</div>}
+        </div>
+      </section>
 
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
