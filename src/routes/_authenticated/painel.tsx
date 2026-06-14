@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { TaskAssignmentDialog } from "@/components/TaskAssignmentDialog";
 
 export const Route = createFileRoute("/_authenticated/painel")({ component: Painel });
 
@@ -30,6 +31,7 @@ function Painel() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [delegatedTasks, setDelegatedTasks] = useState<DelegatedTask[]>([]);
+  const [editingTask, setEditingTask] = useState<DelegatedTask | null>(null);
   const [dialog, setDialog] = useState<{ open: boolean; member?: Member; weekStart?: Date; entry?: WeekEntry } | null>(null);
 
   const weeks = useMemo(() => weeksOfMonth(year, month), [year, month]);
@@ -116,7 +118,7 @@ function Painel() {
               <Card key={task.id} className="p-4 shadow-card">
                 <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{task.title}</h3>{isAdmin && <p className="text-xs text-muted-foreground">{member?.name ?? "Membro"}</p>}</div><Badge variant={task.complexity === "alto" ? "destructive" : task.complexity === "medio" ? "default" : "secondary"}>{COMPLEXITY_LABELS[task.complexity]}</Badge></div>
                 <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{task.description}</p>
-                <div className="mt-4 flex items-center justify-between gap-3"><div className="text-xs"><span className="text-muted-foreground">Prazo: </span><span className="font-medium">{new Date(`${task.due_date}T12:00:00`).toLocaleDateString("pt-BR")}</span></div><Button size="sm" variant={task.status === "concluida" ? "outline" : "default"} onClick={() => toggleTask(task)}>{task.status === "concluida" ? "Reabrir" : "Concluir"}</Button></div>
+                <div className="mt-4 flex items-center justify-between gap-3"><div className="text-xs"><span className="text-muted-foreground">Prazo: </span><span className="font-medium">{new Date(`${task.due_date}T12:00:00`).toLocaleDateString("pt-BR")}</span></div><div className="flex gap-2">{isAdmin && <Button size="sm" variant="outline" onClick={() => setEditingTask(task)}>Editar</Button>}<Button size="sm" variant={task.status === "concluida" ? "outline" : "default"} onClick={() => toggleTask(task)}>{task.status === "concluida" ? "Reabrir" : "Concluir"}</Button></div></div>
               </Card>
             );
           })}
@@ -222,6 +224,15 @@ function Painel() {
           entry={dialog.entry}
           readOnly={!isAdmin && toISODate(dialog.weekStart) !== currentWeekISO}
           onSaved={load}
+        />
+      )}
+      {editingTask && (
+        <TaskAssignmentDialog
+          open
+          onOpenChange={(open) => !open && setEditingTask(null)}
+          member={members.find((item) => item.id === editingTask.member_id) ?? null}
+          task={editingTask}
+          onSaved={() => { setEditingTask(null); void load(); }}
         />
       )}
     </div>
