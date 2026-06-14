@@ -19,6 +19,8 @@ const DIRECTORATE_NAV = [
   { to: "/diretorias/publicidade", label: "Publicidade", Icon: Megaphone },
 ] as const;
 
+type SidebarPath = (typeof NAV)[number]["to"] | (typeof DIRECTORATE_NAV)[number]["to"];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
   const navigate = useNavigate();
@@ -101,6 +103,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarLink({ to, label, Icon, active }: { to: string; label: string; Icon: React.ComponentType<{ className?: string }>; active: boolean }) {
+function SidebarLink({ to, label, Icon, active }: { to: SidebarPath; label: string; Icon: React.ComponentType<{ className?: string }>; active: boolean }) {
   return <Link to={to} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? "bg-primary text-primary-foreground shadow-elegant" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}><Icon className="h-4 w-4" /><span>{label}</span></Link>;
 }
