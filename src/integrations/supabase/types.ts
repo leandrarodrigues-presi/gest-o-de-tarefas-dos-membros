@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      delegated_tasks: {
+        Row: {
+          assigned_by: string
+          complexity: string
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          member_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          complexity: string
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          member_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          complexity?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          member_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delegated_tasks_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegated_tasks_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           active: boolean
@@ -58,18 +112,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          directorate: string | null
           email: string | null
           full_name: string | null
           id: string
         }
         Insert: {
           created_at?: string
+          directorate?: string | null
           email?: string | null
           full_name?: string | null
           id: string
         }
         Update: {
           created_at?: string
+          directorate?: string | null
           email?: string | null
           full_name?: string | null
           id?: string

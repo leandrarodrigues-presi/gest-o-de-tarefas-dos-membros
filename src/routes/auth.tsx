@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 
@@ -18,6 +19,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
 
   useEffect(() => {
     if (!session || roleLoading || role === "pending" || role === null) return;
@@ -59,6 +63,21 @@ function AuthPage() {
     setLoading(false);
     if (error) toast.error(error.message);
     else toast.success("Conta criada! Após confirmar o e-mail, aguarde a aprovação de um administrador.");
+  }
+
+  async function requestPasswordReset(e: React.FormEvent) {
+    e.preventDefault();
+    setRecoveryLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setRecoveryLoading(false);
+    if (error) {
+      toast.error("Não foi possível enviar o e-mail de recuperação.");
+      return;
+    }
+    toast.success("Se o e-mail estiver cadastrado, você receberá o link de recuperação.");
+    setForgotOpen(false);
   }
 
   return (
@@ -106,7 +125,7 @@ function AuthPage() {
                   <Input id="e1" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="p1">Senha</Label>
+                  <div className="flex items-center justify-between"><Label htmlFor="p1">Senha</Label><Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={() => { setRecoveryEmail(email); setForgotOpen(true); }}>Esqueci minha senha</Button></div>
                   <Input id="p1" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -138,6 +157,15 @@ function AuthPage() {
           </Tabs>
         </div>
       </div>
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Recuperar senha</DialogTitle><DialogDescription>Informe seu e-mail para receber um link seguro de redefinição.</DialogDescription></DialogHeader>
+          <form onSubmit={requestPasswordReset} className="space-y-4">
+            <div className="space-y-2"><Label htmlFor="recovery-email">E-mail</Label><Input id="recovery-email" type="email" required value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} /></div>
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>Cancelar</Button><Button type="submit" disabled={recoveryLoading}>{recoveryLoading ? "Enviando..." : "Enviar link"}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
