@@ -57,7 +57,7 @@ function Relatorios() {
       <div className="flex flex-wrap items-end justify-between gap-4 no-print">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Relatório Semanal</h1>
-          <p className="text-muted-foreground text-sm">{isAdmin ? "Gere e exporte o relatório central da equipe" : "Gere e exporte o relatório das suas atividades"}</p>
+          <p className="text-muted-foreground text-sm">Gere e exporte o relatório central da equipe</p>
         </div>
         <Button onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-2" /> Imprimir / PDF

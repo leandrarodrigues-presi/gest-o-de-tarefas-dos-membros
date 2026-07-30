@@ -93,9 +93,7 @@ function Dashboard() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground text-sm">
-          {isAdmin
-            ? "Visão geral consolidada das atividades da Lignum Ambiental Jr."
-            : "Visão geral das suas atividades registradas."}
+          Visão geral consolidada das atividades da Lignum Ambiental Jr.
         </p>
       </div>
 
