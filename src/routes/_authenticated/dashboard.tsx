@@ -21,6 +21,7 @@ interface Entry {
 const COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#0ea5e9", "#8b5cf6", "#ef4444"];
 
 function Dashboard() {
+  const { isAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
