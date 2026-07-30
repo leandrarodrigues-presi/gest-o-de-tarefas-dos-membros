@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Users, ClipboardList, Calendar, TrendingUp, ChevronLeft, ChevronRight, Plus, FileText, type LucideIcon } from "lucide-react";
+import { Users, ClipboardList, Calendar, TrendingUp, ChevronLeft, ChevronRight, Plus, FileText, Pencil, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, addDays, toISODate, formatDM, weeksOfMonth, MONTHS_PT, initialsFromName } from "@/lib/week";
 import { WeekEntryDialog, type WeekEntry } from "@/components/WeekEntryDialog";
@@ -10,10 +10,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { TaskAssignmentDialog } from "@/components/TaskAssignmentDialog";
+import { SelfNameDialog } from "@/components/SelfNameDialog";
 
 export const Route = createFileRoute("/_authenticated/painel")({ component: Painel });
 
-interface Member { id: string; name: string; role_title: string; area: string | null; active: boolean; }
+interface Member { id: string; name: string; role_title: string; area: string | null; active: boolean; user_id: string | null; }
 interface Entry {
   id: string; member_id: string; week_start: string;
   tasks: string[]; meetings: string[]; prospection: string; observations: string;
@@ -23,7 +24,7 @@ interface DelegatedTask { id: string; member_id: string; title: string; descript
 const COMPLEXITY_LABELS = { baixo: "Baixo", medio: "Médio", alto: "Alto" } as const;
 
 function Painel() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -32,6 +33,7 @@ function Painel() {
   const [loading, setLoading] = useState(true);
   const [delegatedTasks, setDelegatedTasks] = useState<DelegatedTask[]>([]);
   const [editingTask, setEditingTask] = useState<DelegatedTask | null>(null);
+  const [renaming, setRenaming] = useState<Member | null>(null);
   const [dialog, setDialog] = useState<{ open: boolean; member?: Member; weekStart?: Date; entry?: WeekEntry } | null>(null);
 
   const weeks = useMemo(() => weeksOfMonth(year, month), [year, month]);
@@ -167,7 +169,16 @@ function Painel() {
                         {initialsFromName(m.name)}
                       </div>
                       <div className="leading-tight">
-                        <div className="font-medium">{m.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium">{m.name}</span>
+                          {user?.id && m.user_id === user.id && (
+                            <button type="button" title="Editar meu nome" aria-label="Editar meu nome"
+                              className="p-0.5 text-muted-foreground hover:text-primary"
+                              onClick={() => setRenaming(m)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
                         <div className="text-[11px] text-muted-foreground">{m.role_title}</div>
                       </div>
                     </div>
@@ -235,6 +246,13 @@ function Painel() {
           onSaved={() => { setEditingTask(null); void load(); }}
         />
       )}
+      <SelfNameDialog
+        open={Boolean(renaming)}
+        onOpenChange={(open) => !open && setRenaming(null)}
+        memberId={renaming?.id ?? null}
+        currentName={renaming?.name ?? ""}
+        onSaved={load}
+      />
     </div>
   );
 }
