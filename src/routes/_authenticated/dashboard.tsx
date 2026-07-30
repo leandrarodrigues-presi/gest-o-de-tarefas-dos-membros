@@ -8,9 +8,9 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { MONTHS_PT } from "@/lib/week";
-import { AdminRouteGuard } from "@/components/AdminRouteGuard";
+import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/_authenticated/dashboard")({ component: () => <AdminRouteGuard><Dashboard /></AdminRouteGuard> });
+export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
 interface Member { id: string; name: string; role_title: string; area: string | null; active: boolean; }
 interface Entry {
@@ -21,6 +21,7 @@ interface Entry {
 const COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#0ea5e9", "#8b5cf6", "#ef4444"];
 
 function Dashboard() {
+  const { isAdmin } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,11 +92,15 @@ function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Visão geral consolidada das atividades da Lignum Ambiental Jr.</p>
+        <p className="text-muted-foreground text-sm">
+          {isAdmin
+            ? "Visão geral consolidada das atividades da Lignum Ambiental Jr."
+            : "Visão geral das suas atividades registradas."}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Stat icon={Users} label="Membros ativos" value={totals.members} color="text-primary" />
+        {isAdmin && <Stat icon={Users} label="Membros ativos" value={totals.members} color="text-primary" />}
         <Stat icon={ClipboardList} label="Tarefas totais" value={totals.tasks} color="text-emerald-600" />
         <Stat icon={Calendar} label="Reuniões totais" value={totals.meetings} color="text-amber-600" />
         <Stat icon={TrendingUp} label="Semanas c/ prospecção" value={totals.prosp} color="text-sky-600" />
