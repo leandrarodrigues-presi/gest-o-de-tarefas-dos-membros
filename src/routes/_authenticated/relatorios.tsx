@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { addDays, formatDM, MONTHS_PT, startOfWeek, toISODate, weeksOfMonth, initialsFromName } from "@/lib/week";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 import iffLogo from "@/assets/iff.png.asset.json";
-import { AdminRouteGuard } from "@/components/AdminRouteGuard";
+import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/_authenticated/relatorios")({ component: () => <AdminRouteGuard><Relatorios /></AdminRouteGuard> });
+export const Route = createFileRoute("/_authenticated/relatorios")({ component: Relatorios });
 
 interface Member { id: string; name: string; role_title: string; }
 interface Entry {
