@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { addDays, formatDM, MONTHS_PT, startOfWeek, toISODate, weeksOfMonth, initialsFromName } from "@/lib/week";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 import iffLogo from "@/assets/iff.png.asset.json";
-import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/_authenticated/relatorios")({ component: Relatorios });
 
@@ -18,7 +18,7 @@ interface Entry {
 }
 
 function Relatorios() {
-  const { isAdmin } = useAuth();
+  
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -57,7 +57,7 @@ function Relatorios() {
       <div className="flex flex-wrap items-end justify-between gap-4 no-print">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Relatório Semanal</h1>
-          <p className="text-muted-foreground text-sm">{isAdmin ? "Gere e exporte o relatório central da equipe" : "Gere e exporte o relatório das suas atividades"}</p>
+          <p className="text-muted-foreground text-sm">Gere e exporte o relatório central da equipe</p>
         </div>
         <Button onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-2" /> Imprimir / PDF
