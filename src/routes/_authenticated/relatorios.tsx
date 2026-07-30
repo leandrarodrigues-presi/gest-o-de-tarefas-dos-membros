@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { addDays, formatDM, MONTHS_PT, startOfWeek, toISODate, weeksOfMonth, initialsFromName } from "@/lib/week";
 import lignumLogo from "@/assets/lignum.png.asset.json";
 import iffLogo from "@/assets/iff.png.asset.json";
-import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/_authenticated/relatorios")({ component: Relatorios });
 
@@ -18,7 +18,7 @@ interface Entry {
 }
 
 function Relatorios() {
-  const { isAdmin } = useAuth();
+  
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
