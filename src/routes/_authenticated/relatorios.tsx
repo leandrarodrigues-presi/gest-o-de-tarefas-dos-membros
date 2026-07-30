@@ -18,6 +18,7 @@ interface Entry {
 }
 
 function Relatorios() {
+  const { isAdmin } = useAuth();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
