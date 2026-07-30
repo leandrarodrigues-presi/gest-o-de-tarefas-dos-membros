@@ -5,11 +5,11 @@ import lignumLogo from "@/assets/lignum.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", Icon: PieChart, adminOnly: true },
+  { to: "/dashboard", label: "Dashboard", Icon: PieChart, adminOnly: false },
   { to: "/painel", label: "Atividades", Icon: LayoutDashboard, adminOnly: false },
   { to: "/equipe", label: "Equipe", Icon: Users, adminOnly: true },
   { to: "/aprovacoes", label: "Aprovações", Icon: UserCheck, adminOnly: true },
-  { to: "/relatorios", label: "Relatórios", Icon: BarChart3, adminOnly: true },
+  { to: "/relatorios", label: "Relatórios", Icon: BarChart3, adminOnly: false },
 ] as const;
 
 const DIRECTORATE_NAV = [
