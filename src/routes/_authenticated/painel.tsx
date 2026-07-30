@@ -246,6 +246,13 @@ function Painel() {
           onSaved={() => { setEditingTask(null); void load(); }}
         />
       )}
+      <SelfNameDialog
+        open={Boolean(renaming)}
+        onOpenChange={(open) => !open && setRenaming(null)}
+        memberId={renaming?.id ?? null}
+        currentName={renaming?.name ?? ""}
+        onSaved={load}
+      />
     </div>
   );
 }
