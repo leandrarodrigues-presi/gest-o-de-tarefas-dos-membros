@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/painel")({ component: Pain
 interface Member { id: string; name: string; role_title: string; area: string | null; active: boolean; user_id: string | null; }
 interface Entry {
   id: string; member_id: string; week_start: string;
-  tasks: string[]; meetings: string[]; prospection: string; observations: string;
+  tasks: string[]; meetings: string[]; prospection: string; observations: string; hours: number | null;
 }
 interface DelegatedTask { id: string; member_id: string; title: string; description: string; due_date: string; complexity: "baixo" | "medio" | "alto"; status: "pendente" | "concluida"; }
 
@@ -76,6 +76,10 @@ function Painel() {
   }
 
   const currentWeekISO = toISODate(startOfWeek(today));
+  const myMember = useMemo(() => members.find((m) => user?.id && m.user_id === user.id) ?? null, [members, user?.id]);
+  const myWeekPending = Boolean(
+    myMember && !entries.some((e) => e.member_id === myMember.id && e.week_start === currentWeekISO),
+  );
 
   async function toggleTask(task: DelegatedTask) {
     const status = task.status === "pendente" ? "concluida" : "pendente";
@@ -103,6 +107,23 @@ function Painel() {
           <Button variant="outline" size="icon" onClick={() => changeMonth(1)}><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </div>
+
+      {myWeekPending && myMember && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <span className="font-medium">Seu Registro Semanal de Atividades desta semana ainda está pendente.</span>
+          <span className="text-muted-foreground">O prazo encerra no domingo.</span>
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={() => setDialog({
+              open: true, member: myMember, weekStart: startOfWeek(today),
+              entry: { member_id: myMember.id, week_start: currentWeekISO, tasks: [], meetings: [], prospection: "", observations: "", hours: 0 },
+            })}
+          >
+            Preencher agora
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Stat icon={Users} label="Membros" value={members.length} color="text-primary" />
@@ -193,9 +214,10 @@ function Painel() {
                           onClick={() => setDialog({
                             open: true, member: m, weekStart: w,
                             entry: {
-                              member_id: m.id, week_start: iso,
+                              id: e?.id, member_id: m.id, week_start: iso,
                               tasks: e?.tasks ?? [], meetings: e?.meetings ?? [],
                               prospection: e?.prospection ?? "", observations: e?.observations ?? "",
+                              hours: Number(e?.hours ?? 0),
                             },
                           })}
                           className={`mx-auto inline-flex flex-col items-center justify-center min-w-12 min-h-12 rounded-lg transition ${
@@ -210,6 +232,7 @@ function Painel() {
                                 {e.tasks?.length ? <div>T:{e.tasks.length}</div> : null}
                                 {e.meetings?.length ? <div>R:{e.meetings.length}</div> : null}
                                 {e.prospection ? <div>P</div> : null}
+                                {e.hours ? <div>{Number(e.hours)}h</div> : null}
                               </div>
                             </>
                           ) : (
@@ -233,7 +256,11 @@ function Painel() {
           memberName={dialog.member.name}
           weekStart={dialog.weekStart}
           entry={dialog.entry}
-          readOnly={!isAdmin && toISODate(dialog.weekStart) !== currentWeekISO}
+          readOnly={
+            !isAdmin &&
+            (dialog.member.user_id !== user?.id || toISODate(dialog.weekStart) !== currentWeekISO)
+          }
+          canDelete={isAdmin || (dialog.member.user_id === user?.id && toISODate(dialog.weekStart) === currentWeekISO)}
           onSaved={load}
         />
       )}
