@@ -19,7 +19,6 @@ const DIRECTORATE_NAV = [
   { to: "/diretorias/publicidade", label: "Publicidade", Icon: Megaphone },
 ] as const;
 
-type SidebarPath = (typeof NAV)[number]["to"] | (typeof DIRECTORATE_NAV)[number]["to"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
