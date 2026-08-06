@@ -50,6 +50,7 @@ export const approveUser = createServerFn({ method: "POST" })
         user_id: data.userId,
         name: profile.full_name || profile.email || "Novo membro",
         role_title: data.role === "admin" ? "Diretor(a)" : "Membro",
+        directorate: data.directorate,
         active: true,
       },
       { onConflict: "user_id" },
