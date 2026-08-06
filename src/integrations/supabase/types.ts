@@ -73,6 +73,7 @@ export type Database = {
           active: boolean
           area: string | null
           created_at: string
+          directorate: string | null
           id: string
           name: string
           role_title: string
@@ -83,6 +84,7 @@ export type Database = {
           active?: boolean
           area?: string | null
           created_at?: string
+          directorate?: string | null
           id?: string
           name: string
           role_title: string
@@ -93,6 +95,7 @@ export type Database = {
           active?: boolean
           area?: string | null
           created_at?: string
+          directorate?: string | null
           id?: string
           name?: string
           role_title?: string
