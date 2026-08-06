@@ -27,19 +27,24 @@ function DirectoratePage() {
   async function load() {
     if (!isDirectorate(diretoria)) return;
     setLoading(true);
-    const { data: profiles, error } = await supabase.from("profiles").select("id").eq("directorate", diretoria);
+    const [{ data: profiles }, { data: direct, error }] = await Promise.all([
+      supabase.from("profiles").select("id").eq("directorate", diretoria),
+      supabase.from("members").select("id,name,role_title,active,user_id").eq("directorate", diretoria).order("name"),
+    ]);
     if (error) {
       toast.error("Não foi possível carregar esta diretoria.");
       setLoading(false);
       return;
     }
     const ids = profiles?.map((profile) => profile.id) ?? [];
-    if (ids.length === 0) {
-      setMembers([]);
-    } else {
+    let byProfile: DirectorateMember[] = [];
+    if (ids.length > 0) {
       const { data } = await supabase.from("members").select("id,name,role_title,active,user_id").in("user_id", ids).order("name");
-      setMembers((data as DirectorateMember[]) ?? []);
+      byProfile = (data as DirectorateMember[]) ?? [];
     }
+    const merged = new Map<string, DirectorateMember>();
+    for (const m of [...((direct as DirectorateMember[]) ?? []), ...byProfile]) merged.set(m.id, m);
+    setMembers(Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
     setLoading(false);
   }
 
