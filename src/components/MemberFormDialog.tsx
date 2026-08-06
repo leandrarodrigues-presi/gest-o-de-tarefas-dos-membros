@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DIRECTORATES } from "@/lib/directorates";
 
 export interface Member {
   id?: string;
   name: string;
   role_title: string;
   area: string | null;
+  directorate?: string | null;
   active: boolean;
 }
 
@@ -22,7 +25,7 @@ interface Props {
   onSaved: () => void;
 }
 
-const EMPTY: Member = { name: "", role_title: "", area: "", active: true };
+const EMPTY: Member = { name: "", role_title: "", area: "", directorate: null, active: true };
 
 export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props) {
   const [data, setData] = useState<Member>(member ?? EMPTY);
@@ -33,7 +36,13 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
   async function handleSave(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...data, area: data.area || null };
+    const payload = {
+      name: data.name,
+      role_title: data.role_title,
+      area: data.area || null,
+      directorate: data.directorate || null,
+      active: data.active,
+    };
     const { error } = member?.id
       ? await supabase.from("members").update(payload).eq("id", member.id)
       : await supabase.from("members").insert(payload);
@@ -64,6 +73,16 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
             <Label htmlFor="m-area">Área</Label>
             <Input id="m-area" placeholder="Ex: Projetos, Gestão, Comunicação..."
               value={data.area ?? ""} onChange={(e) => setData({ ...data, area: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Diretoria</Label>
+            <Select value={data.directorate ?? "none"} onValueChange={(v) => setData({ ...data, directorate: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione a diretoria" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem diretoria</SelectItem>
+                {DIRECTORATES.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
