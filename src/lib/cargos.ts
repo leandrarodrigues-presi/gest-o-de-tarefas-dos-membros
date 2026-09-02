@@ -15,5 +15,5 @@ export function isCargo(value: string): value is Cargo {
 }
 
 export function cargoLabel(value: string | null | undefined) {
-  return CARGOS.find((item) => item.value === value)?.label ?? "Membro";
+  return CARGOS.find((item) => item.value === value)?.label ?? "Trainee";
 }
