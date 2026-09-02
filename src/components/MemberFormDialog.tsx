@@ -27,7 +27,7 @@ interface Props {
   onSaved: () => void;
 }
 
-const EMPTY: Member = { name: "", role_title: "", area: "", directorate: null, cargo: "membro", active: true };
+const EMPTY: Member = { name: "", role_title: "", area: "", directorate: null, cargo: DEFAULT_CARGO, active: true };
 
 export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props) {
   const [data, setData] = useState<Member>(member ?? EMPTY);
