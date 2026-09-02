@@ -1,10 +1,12 @@
 export const CARGOS = [
   { value: "administrador", label: "Administrador" },
   { value: "diretor", label: "Diretor" },
-  { value: "assessor", label: "Assessor" },
   { value: "coordenador", label: "Coordenador" },
-  { value: "membro", label: "Membro" },
+  { value: "assessor", label: "Assessor" },
+  { value: "trainee", label: "Trainee" },
 ] as const;
+
+export const DEFAULT_CARGO = "trainee" as const;
 
 export type Cargo = (typeof CARGOS)[number]["value"];
 
