@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DIRECTORATES } from "@/lib/directorates";
-import { CARGOS, type Cargo } from "@/lib/cargos";
+import { CARGOS, DEFAULT_CARGO, type Cargo } from "@/lib/cargos";
 
 export interface Member {
   id?: string;
@@ -43,7 +43,7 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
       role_title: data.role_title,
       area: data.area || null,
       directorate: data.directorate || null,
-      cargo: data.cargo ?? "membro",
+      cargo: data.cargo ?? DEFAULT_CARGO,
       active: data.active,
     };
     const { error } = member?.id
@@ -79,7 +79,7 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
           </div>
           <div className="space-y-2">
             <Label>Cargo</Label>
-            <Select value={data.cargo ?? "membro"} onValueChange={(v) => setData({ ...data, cargo: v as Cargo })}>
+            <Select value={data.cargo ?? DEFAULT_CARGO} onValueChange={(v) => setData({ ...data, cargo: v as Cargo })}>
               <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
               <SelectContent>
                 {CARGOS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
