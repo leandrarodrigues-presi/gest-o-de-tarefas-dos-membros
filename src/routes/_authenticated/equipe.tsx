@@ -17,11 +17,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { DIRECTORATES, directorateLabel } from "@/lib/directorates";
+import { cargoLabel, type Cargo } from "@/lib/cargos";
 
 export const Route = createFileRoute("/_authenticated/equipe")({ component: () => <AdminRouteGuard><Equipe /></AdminRouteGuard> });
 
 type Row = Member & {
   id: string;
+  cargo?: Cargo | null;
   created_at?: string;
   directorate?: string | null;
   user_id?: string | null;
@@ -155,7 +157,10 @@ function Equipe() {
                   {initialsFromName(m.name)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold">{m.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold">{m.name}</div>
+                    <Badge variant="outline" className="text-[10px] font-semibold">{cargoLabel(m.cargo)}</Badge>
+                  </div>
                   <div className="text-xs text-muted-foreground">{m.role_title}</div>
                   <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 shrink-0" />

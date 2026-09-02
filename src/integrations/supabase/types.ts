@@ -72,6 +72,7 @@ export type Database = {
         Row: {
           active: boolean
           area: string | null
+          cargo: string
           created_at: string
           directorate: string | null
           id: string
@@ -83,6 +84,7 @@ export type Database = {
         Insert: {
           active?: boolean
           area?: string | null
+          cargo?: string
           created_at?: string
           directorate?: string | null
           id?: string
@@ -94,6 +96,7 @@ export type Database = {
         Update: {
           active?: boolean
           area?: string | null
+          cargo?: string
           created_at?: string
           directorate?: string | null
           id?: string
