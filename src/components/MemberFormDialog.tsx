@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DIRECTORATES } from "@/lib/directorates";
+import { CARGOS, type Cargo } from "@/lib/cargos";
 
 export interface Member {
   id?: string;
@@ -15,6 +16,7 @@ export interface Member {
   role_title: string;
   area: string | null;
   directorate?: string | null;
+  cargo?: Cargo;
   active: boolean;
 }
 
@@ -25,7 +27,7 @@ interface Props {
   onSaved: () => void;
 }
 
-const EMPTY: Member = { name: "", role_title: "", area: "", directorate: null, active: true };
+const EMPTY: Member = { name: "", role_title: "", area: "", directorate: null, cargo: "membro", active: true };
 
 export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props) {
   const [data, setData] = useState<Member>(member ?? EMPTY);
@@ -41,6 +43,7 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
       role_title: data.role_title,
       area: data.area || null,
       directorate: data.directorate || null,
+      cargo: data.cargo ?? "membro",
       active: data.active,
     };
     const { error } = member?.id
@@ -73,6 +76,15 @@ export function MemberFormDialog({ open, onOpenChange, member, onSaved }: Props)
             <Label htmlFor="m-area">Área</Label>
             <Input id="m-area" placeholder="Ex: Projetos, Gestão, Comunicação..."
               value={data.area ?? ""} onChange={(e) => setData({ ...data, area: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Cargo</Label>
+            <Select value={data.cargo ?? "membro"} onValueChange={(v) => setData({ ...data, cargo: v as Cargo })}>
+              <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+              <SelectContent>
+                {CARGOS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Diretoria</Label>
