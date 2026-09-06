@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { canDelegateTo } from "@/lib/hierarchy";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,13 +19,13 @@ import { Textarea } from "@/components/ui/textarea";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  member: { id: string; name: string } | null;
+  member: { id: string; name: string; cargo?: string | null; directorate?: string | null; active?: boolean } | null;
   task?: { id: string; title: string; description: string; due_date: string; complexity: "baixo" | "medio" | "alto" } | null;
   onSaved: () => void;
 }
 
 export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved }: Props) {
-  const { user } = useAuth();
+  const { user, isAdmin, member: authMember } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date>();
@@ -43,6 +44,11 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved
     event.preventDefault();
     if (!member || !user || !dueDate) {
       toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    // Validação de interface: a autorização definitiva é aplicada pelo banco (RLS).
+    if (!task && !canDelegateTo(authMember, member, isAdmin)) {
+      toast.error("Você não tem autoridade para atribuir tarefas a este membro.");
       return;
     }
     setSaving(true);

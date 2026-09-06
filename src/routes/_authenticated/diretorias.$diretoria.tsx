@@ -7,29 +7,35 @@ import { TaskAssignmentDialog } from "@/components/TaskAssignmentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { directorateLabel, isDirectorate } from "@/lib/directorates";
+import { canDelegateTo, hasFullVisibility } from "@/lib/hierarchy";
 import { initialsFromName } from "@/lib/week";
 
 export const Route = createFileRoute("/_authenticated/diretorias/$diretoria")({
-  component: () => <AdminRouteGuard><DirectoratePage /></AdminRouteGuard>,
+  component: () => <AdminRouteGuard allowDelegators><DirectoratePage /></AdminRouteGuard>,
 });
 
-interface DirectorateMember { id: string; name: string; role_title: string; active: boolean; user_id: string | null; }
+interface DirectorateMember { id: string; name: string; role_title: string; active: boolean; user_id: string | null; cargo: string | null; directorate: string | null; }
 
 function DirectoratePage() {
   const { diretoria } = Route.useParams();
   const navigate = useNavigate();
+  const { isAdmin, member: authMember, roleLoading } = useAuth();
   const [members, setMembers] = useState<DirectorateMember[]>([]);
   const [selected, setSelected] = useState<DirectorateMember | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fullVisibility = isAdmin || hasFullVisibility(authMember?.cargo);
+  const ownDirectorate = (authMember?.directorate ?? "").trim();
 
   async function load() {
     if (!isDirectorate(diretoria)) return;
     setLoading(true);
     const [{ data: profiles }, { data: direct, error }] = await Promise.all([
       supabase.from("profiles").select("id").eq("directorate", diretoria),
-      supabase.from("members").select("id,name,role_title,active,user_id").eq("directorate", diretoria).order("name"),
+      supabase.from("members").select("id,name,role_title,active,user_id,cargo,directorate").eq("directorate", diretoria).order("name"),
     ]);
     if (error) {
       toast.error("Não foi possível carregar esta diretoria.");
@@ -39,7 +45,7 @@ function DirectoratePage() {
     const ids = profiles?.map((profile) => profile.id) ?? [];
     let byProfile: DirectorateMember[] = [];
     if (ids.length > 0) {
-      const { data } = await supabase.from("members").select("id,name,role_title,active,user_id").in("user_id", ids).order("name");
+      const { data } = await supabase.from("members").select("id,name,role_title,active,user_id,cargo,directorate").in("user_id", ids).order("name");
       byProfile = (data as DirectorateMember[]) ?? [];
     }
     const merged = new Map<string, DirectorateMember>();
@@ -49,12 +55,18 @@ function DirectoratePage() {
   }
 
   useEffect(() => {
+    if (roleLoading) return;
     if (!isDirectorate(diretoria)) {
       navigate({ to: "/dashboard", replace: true });
       return;
     }
+    // Coordenador e Assessor só acessam a própria diretoria.
+    if (!fullVisibility && ownDirectorate && diretoria !== ownDirectorate) {
+      navigate({ to: "/diretorias/$diretoria", params: { diretoria: ownDirectorate }, replace: true });
+      return;
+    }
     void load();
-  }, [diretoria]);
+  }, [diretoria, roleLoading, fullVisibility, ownDirectorate]);
 
   if (!isDirectorate(diretoria)) return null;
   return (
@@ -71,7 +83,9 @@ function DirectoratePage() {
               <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-primary text-sm font-bold text-primary-foreground">{initialsFromName(member.name)}</div>
               <div className="min-w-0 flex-1"><h2 className="truncate font-semibold">{member.name}</h2><p className="text-xs text-muted-foreground">{member.role_title}</p><Badge variant={member.active ? "secondary" : "outline"} className="mt-2">{member.active ? "Ativo" : "Inativo"}</Badge></div>
             </div>
-            <Button className="mt-4 w-full" disabled={!member.active} onClick={() => setSelected(member)}><ClipboardPlus className="mr-2 h-4 w-4" />Atribuir tarefa</Button>
+            {canDelegateTo(authMember, member, isAdmin) && (
+              <Button className="mt-4 w-full" disabled={!member.active} onClick={() => setSelected(member)}><ClipboardPlus className="mr-2 h-4 w-4" />Atribuir tarefa</Button>
+            )}
           </Card>
         ))}
       </div>

@@ -2,11 +2,20 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AuthMember {
+  id: string;
+  name: string;
+  cargo: string | null;
+  directorate: string | null;
+}
+
 interface AuthCtx {
   session: Session | null;
   user: User | null;
   role: "admin" | "member" | "pending" | null;
   isAdmin: boolean;
+  /** Registro do membro vinculado ao usuário logado (cargo/diretoria). */
+  member: AuthMember | null;
   roleLoading: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -17,6 +26,7 @@ const Ctx = createContext<AuthCtx>({
   user: null,
   role: null,
   isAdmin: false,
+  member: null,
   roleLoading: true,
   loading: true,
   signOut: async () => {},
@@ -25,27 +35,29 @@ const Ctx = createContext<AuthCtx>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<"admin" | "member" | "pending" | null>(null);
+  const [member, setMember] = useState<AuthMember | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function loadAccess(userId: string) {
+      const [{ data: roleRow }, { data: memberRow }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
+        supabase.from("members").select("id,name,cargo,directorate").eq("user_id", userId).maybeSingle(),
+      ]);
+      setRole(roleRow?.role ?? null);
+      setMember((memberRow as AuthMember | null) ?? null);
+      setRoleLoading(false);
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       if (s?.user) {
         setRoleLoading(true);
-        setTimeout(() => {
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .maybeSingle()
-            .then(({ data }) => {
-              setRole(data?.role ?? null);
-              setRoleLoading(false);
-            });
-        }, 0);
+        setTimeout(() => void loadAccess(s.user.id), 0);
       } else {
         setRole(null);
+        setMember(null);
         setRoleLoading(false);
       }
     });
@@ -54,15 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       if (data.session?.user) {
         setRoleLoading(true);
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.session.user.id)
-          .maybeSingle()
-          .then(({ data: r }) => {
-            setRole(r?.role ?? null);
-            setRoleLoading(false);
-          });
+        void loadAccess(data.session.user.id);
       } else {
         setRoleLoading(false);
       }
@@ -77,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         role,
         isAdmin: role === "admin",
+        member,
         roleLoading,
         loading,
         signOut: async () => {
