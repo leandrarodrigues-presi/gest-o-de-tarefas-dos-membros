@@ -7,8 +7,10 @@ import { TaskAssignmentDialog } from "@/components/TaskAssignmentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { directorateLabel, isDirectorate } from "@/lib/directorates";
+import { canDelegateTo, hasFullVisibility } from "@/lib/hierarchy";
 import { initialsFromName } from "@/lib/week";
 
 export const Route = createFileRoute("/_authenticated/diretorias/$diretoria")({
@@ -81,7 +83,9 @@ function DirectoratePage() {
               <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-primary text-sm font-bold text-primary-foreground">{initialsFromName(member.name)}</div>
               <div className="min-w-0 flex-1"><h2 className="truncate font-semibold">{member.name}</h2><p className="text-xs text-muted-foreground">{member.role_title}</p><Badge variant={member.active ? "secondary" : "outline"} className="mt-2">{member.active ? "Ativo" : "Inativo"}</Badge></div>
             </div>
-            <Button className="mt-4 w-full" disabled={!member.active} onClick={() => setSelected(member)}><ClipboardPlus className="mr-2 h-4 w-4" />Atribuir tarefa</Button>
+            {canDelegateTo(authMember, member, isAdmin) && (
+              <Button className="mt-4 w-full" disabled={!member.active} onClick={() => setSelected(member)}><ClipboardPlus className="mr-2 h-4 w-4" />Atribuir tarefa</Button>
+            )}
           </Card>
         ))}
       </div>
