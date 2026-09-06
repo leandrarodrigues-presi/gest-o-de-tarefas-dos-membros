@@ -20,16 +20,20 @@ interface DirectorateMember { id: string; name: string; role_title: string; acti
 function DirectoratePage() {
   const { diretoria } = Route.useParams();
   const navigate = useNavigate();
+  const { isAdmin, member: authMember, roleLoading } = useAuth();
   const [members, setMembers] = useState<DirectorateMember[]>([]);
   const [selected, setSelected] = useState<DirectorateMember | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fullVisibility = isAdmin || hasFullVisibility(authMember?.cargo);
+  const ownDirectorate = (authMember?.directorate ?? "").trim();
 
   async function load() {
     if (!isDirectorate(diretoria)) return;
     setLoading(true);
     const [{ data: profiles }, { data: direct, error }] = await Promise.all([
       supabase.from("profiles").select("id").eq("directorate", diretoria),
-      supabase.from("members").select("id,name,role_title,active,user_id").eq("directorate", diretoria).order("name"),
+      supabase.from("members").select("id,name,role_title,active,user_id,cargo,directorate").eq("directorate", diretoria).order("name"),
     ]);
     if (error) {
       toast.error("Não foi possível carregar esta diretoria.");
@@ -39,7 +43,7 @@ function DirectoratePage() {
     const ids = profiles?.map((profile) => profile.id) ?? [];
     let byProfile: DirectorateMember[] = [];
     if (ids.length > 0) {
-      const { data } = await supabase.from("members").select("id,name,role_title,active,user_id").in("user_id", ids).order("name");
+      const { data } = await supabase.from("members").select("id,name,role_title,active,user_id,cargo,directorate").in("user_id", ids).order("name");
       byProfile = (data as DirectorateMember[]) ?? [];
     }
     const merged = new Map<string, DirectorateMember>();
@@ -49,12 +53,18 @@ function DirectoratePage() {
   }
 
   useEffect(() => {
+    if (roleLoading) return;
     if (!isDirectorate(diretoria)) {
       navigate({ to: "/dashboard", replace: true });
       return;
     }
+    // Coordenador e Assessor só acessam a própria diretoria.
+    if (!fullVisibility && ownDirectorate && diretoria !== ownDirectorate) {
+      navigate({ to: "/diretorias/$diretoria", params: { diretoria: ownDirectorate }, replace: true });
+      return;
+    }
     void load();
-  }, [diretoria]);
+  }, [diretoria, roleLoading, fullVisibility, ownDirectorate]);
 
   if (!isDirectorate(diretoria)) return null;
   return (

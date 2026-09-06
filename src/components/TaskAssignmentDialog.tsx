@@ -45,6 +45,11 @@ export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
+    // Validação de interface: a autorização definitiva é aplicada pelo banco (RLS).
+    if (!task && !canDelegateTo(authMember, member, isAdmin)) {
+      toast.error("Você não tem autoridade para atribuir tarefas a este membro.");
+      return;
+    }
     setSaving(true);
     const payload = { member_id: member.id, title: title.trim(), description: description.trim(), due_date: format(dueDate, "yyyy-MM-dd"), complexity, assigned_by: user.id };
     const { error } = task
