@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Users, BarChart3, LogOut, PieChart, UserCheck, Building2, Crown, HeartHandshake, FolderKanban, Megaphone } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import lignumLogo from "@/assets/lignum.png.asset.json";
+import { cargoLabel } from "@/lib/cargos";
+import { canDelegateTasks, hasFullVisibility } from "@/lib/hierarchy";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
@@ -23,11 +25,18 @@ const DIRECTORATE_NAV = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
   const navigate = useNavigate();
-  const { signOut, user, isAdmin } = useAuth();
+  const { signOut, user, isAdmin, member } = useAuth();
+
+  const showSidebar = isAdmin || canDelegateTasks(member?.cargo);
+  const fullVisibility = isAdmin || hasFullVisibility(member?.cargo);
+  const ownDirectorate = (member?.directorate ?? "").trim();
+  const directorateLinks = fullVisibility
+    ? DIRECTORATE_NAV
+    : DIRECTORATE_NAV.filter((item) => item.to === `/diretorias/${ownDirectorate}`);
 
   return (
     <div className="min-h-screen bg-background lg:flex">
-      {isAdmin && (
+      {showSidebar && (
         <aside className="no-print hidden w-60 shrink-0 border-r bg-card lg:flex lg:flex-col">
           <Link to="/dashboard" className="flex h-16 items-center gap-2.5 border-b px-5">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary shadow-elegant"><img src={lignumLogo.url} alt="Lignum" className="h-6 w-6 object-contain invert" /></div>
@@ -35,11 +44,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex-1 space-y-6 p-3">
             <nav className="space-y-1">
-              {NAV.map(({ to, label, Icon }) => <SidebarLink key={to} to={to} label={label} Icon={Icon} active={loc.pathname === to} />)}
+              {NAV.filter((item) => isAdmin || !item.adminOnly).map(({ to, label, Icon }) => <SidebarLink key={to} to={to} label={label} Icon={Icon} active={loc.pathname === to} />)}
             </nav>
             <div>
               <div className="mb-2 flex items-center gap-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"><Building2 className="h-3.5 w-3.5" />Diretorias</div>
-              <nav className="space-y-1">{DIRECTORATE_NAV.map(({ to, label, Icon }) => <SidebarLink key={to} to={to} label={label} Icon={Icon} active={loc.pathname === to} />)}</nav>
+              <nav className="space-y-1">{directorateLinks.map(({ to, label, Icon }) => <SidebarLink key={to} to={to} label={label} Icon={Icon} active={loc.pathname === to} />)}</nav>
             </div>
           </div>
         </aside>
