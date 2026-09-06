@@ -2,11 +2,20 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AuthMember {
+  id: string;
+  name: string;
+  cargo: string | null;
+  directorate: string | null;
+}
+
 interface AuthCtx {
   session: Session | null;
   user: User | null;
   role: "admin" | "member" | "pending" | null;
   isAdmin: boolean;
+  /** Registro do membro vinculado ao usuário logado (cargo/diretoria). */
+  member: AuthMember | null;
   roleLoading: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -17,6 +26,7 @@ const Ctx = createContext<AuthCtx>({
   user: null,
   role: null,
   isAdmin: false,
+  member: null,
   roleLoading: true,
   loading: true,
   signOut: async () => {},
