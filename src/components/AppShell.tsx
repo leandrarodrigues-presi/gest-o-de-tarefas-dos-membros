@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-w-0 flex-1">
       <header className="sticky top-0 z-30 bg-card/80 backdrop-blur border-b no-print">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link to={isAdmin ? "/dashboard" : "/painel"} className={`items-center gap-2.5 ${isAdmin ? "flex lg:hidden" : "flex"}`}>
+          <Link to={showSidebar ? "/dashboard" : "/painel"} className={`items-center gap-2.5 ${showSidebar ? "flex lg:hidden" : "flex"}`}>
             <div className="h-9 w-9 rounded-lg bg-gradient-primary grid place-items-center shadow-elegant">
               <img src={lignumLogo.url} alt="" className="h-6 w-6 object-contain invert" />
             </div>
@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Lignum Ambiental Jr.</div>
             </div>
           </Link>
-          <nav className={`items-center gap-1 ${isAdmin ? "flex lg:hidden" : "flex"}`}>
+          <nav className={`items-center gap-1 ${showSidebar ? "flex lg:hidden" : "flex"}`}>
             {NAV.filter((item) => isAdmin || !item.adminOnly).map(({ to, label, Icon }) => {
               const active = loc.pathname === to;
               return (
@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="hidden md:flex flex-col items-end leading-tight">
               <span className="text-xs font-medium">{user?.email}</span>
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                {isAdmin ? "Administrador" : "Membro"}
+                {cargoLabel(member?.cargo)}
               </span>
             </div>
             <Button
