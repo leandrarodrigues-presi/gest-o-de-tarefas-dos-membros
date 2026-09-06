@@ -18,13 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  member: { id: string; name: string } | null;
+  member: { id: string; name: string; cargo?: string | null; directorate?: string | null; active?: boolean } | null;
   task?: { id: string; title: string; description: string; due_date: string; complexity: "baixo" | "medio" | "alto" } | null;
   onSaved: () => void;
 }
 
 export function TaskAssignmentDialog({ open, onOpenChange, member, task, onSaved }: Props) {
-  const { user } = useAuth();
+  const { user, isAdmin, member: authMember } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date>();

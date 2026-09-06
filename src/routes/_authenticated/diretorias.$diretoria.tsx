@@ -12,10 +12,10 @@ import { directorateLabel, isDirectorate } from "@/lib/directorates";
 import { initialsFromName } from "@/lib/week";
 
 export const Route = createFileRoute("/_authenticated/diretorias/$diretoria")({
-  component: () => <AdminRouteGuard><DirectoratePage /></AdminRouteGuard>,
+  component: () => <AdminRouteGuard allowDelegators><DirectoratePage /></AdminRouteGuard>,
 });
 
-interface DirectorateMember { id: string; name: string; role_title: string; active: boolean; user_id: string | null; }
+interface DirectorateMember { id: string; name: string; role_title: string; active: boolean; user_id: string | null; cargo: string | null; directorate: string | null; }
 
 function DirectoratePage() {
   const { diretoria } = Route.useParams();
